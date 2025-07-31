@@ -1,0 +1,66 @@
+services:
+  # Servicio Web: Apache + PHP
+  web:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_WEB_NAME}
+    ports:
+      # CORRECCIÓN: Puerto 8080 solo accesible desde localhost
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+    depends_on:
+      - db
+    networks:
+      - app-network
+    environment:
+      # CORRECIÓN: Lee la zona horaria del archivo .env
+      TZ: ${TZ}
+
+  # Servicio de Base de Datos: MySQL
+  db:
+    image: mysql:8.0
+    container_name: ${CONTAINER_DB_NAME}
+    restart: always
+    environment:
+      # CORRECCIÓN: Todas las credenciales se leen del archivo .env
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ}
+    volumes:
+      - db_data_avanzado:/var/lib/mysql
+    # CORRECCIÓN DE SEGURIDAD CRÍTICA:
+    # Se elimina la exposición del puerto de la base de datos.
+    # ports:
+    #   - "33061:3306" 
+    networks:
+      - app-network
+
+  # Servicio phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${CONTAINER_PHPMYADMIN_NAME}
+    restart: always
+    ports:
+      # CORRECCIÓN: Puerto 8081 solo accesible desde localhost
+      - "127.0.0.1:8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  db_data_avanzado:
+
+networks:
+  app-network:
+    driver: bridge
