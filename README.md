@@ -169,8 +169,8 @@ Log out and back in for the changes to take effect.
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repository>
-   cd myxampo
+   git clone https://github.com/scharss/xampo
+   cd xampo
    ```
 
 2. **Build and start containers:**
